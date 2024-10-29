@@ -42,10 +42,10 @@ class MyCBC:
         decrypted_bytes = message_int.to_bytes(byte_length, byteorder='big')
         return decrypted_bytes.decode('utf-8')
 
-
-CBC = MyCBC()
-msg = input('Enter message: ')
-encrypted_msg = CBC.encrypt(msg)
-print(encrypted_msg)
-decrypted_msg = CBC.decrypt(encrypted_msg)
-print(decrypted_msg)
+#
+# CBC = MyCBC()
+# msg = input('Enter message: ')
+# encrypted_msg = CBC.encrypt(msg)
+# print(encrypted_msg)
+# decrypted_msg = CBC.decrypt(encrypted_msg)
+# print(decrypted_msg)

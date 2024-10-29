@@ -31,19 +31,19 @@ class MyDeffieHellman:
         return secret_key
 
 
-alice = MyDeffieHellman()
-bob = MyDeffieHellman(alice.p, alice.g)
-
-A = alice.make_public_key()
-B = bob.make_public_key()
-
-secret_key_alice = alice.get_secret_key(B)
-secret_key_bob = bob.get_secret_key(A)
-
-print("Alice's Secret Key:", secret_key_alice)
-print("Bob's Secret Key:", secret_key_bob)
-
-if secret_key_alice != secret_key_bob:
-    print("Secret keys do not match!")
-else:
-    print("Secret keys match!")
+# alice = MyDeffieHellman()
+# bob = MyDeffieHellman(alice.p, alice.g)
+#
+# A = alice.make_public_key()
+# B = bob.make_public_key()
+#
+# secret_key_alice = alice.get_secret_key(B)
+# secret_key_bob = bob.get_secret_key(A)
+#
+# print("Alice's Secret Key:", secret_key_alice)
+# print("Bob's Secret Key:", secret_key_bob)
+#
+# if secret_key_alice != secret_key_bob:
+#     print("Secret keys do not match!")
+# else:
+#     print("Secret keys match!")

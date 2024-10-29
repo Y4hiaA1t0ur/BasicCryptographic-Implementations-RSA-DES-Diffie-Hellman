@@ -1,4 +1,4 @@
-from PnQGenerator import PnQGenerator
+from .PnQGenerator import PnQGenerator
 
 
 class MyRSA:
@@ -18,50 +18,54 @@ class MyRSA:
 
         return public_key, private_key
 
-    # Encrypt: ciphertext = message^e mod n
-    # Decrypt: message = ciphertext^d mod n
-
-    def simple_encrypt(self, message):
+    def encrypt_block(self, block):
         e, n = self.public_key
-        ciphertext = []
-        for c in message:
-            c_int = ord(c)
-            encrypted_c = pow(c_int, e, n)
-            ciphertext.append(encrypted_c)
-        return ciphertext
+        return pow(block, e, n)
 
-    def simple_decrypt(self, ciphertext):
+    def decrypt_block(self, block):
         d, n = self.private_key
-        message = []
+        return pow(block, d, n)
 
-        for i in ciphertext:
-            c_int = pow(i, d, n)
-            c = chr(c_int)
-            message.append(c)
+    def encrypt_large_message(self, message):
+        e, n = self.public_key
+        max_block_size = (n.bit_length() - 1) // 8  # Calculate max block size in bytes
+        encrypted_blocks = []
 
-        return ''.join(message)
+        # Break message into blocks that fit within n's size constraint
+        for i in range(0, len(message), max_block_size):
+            block = message[i:i + max_block_size].encode('utf-8')
+            block_int = int.from_bytes(block, byteorder='big')
+            encrypted_block = self.encrypt_block(block_int)
+            encrypted_blocks.append(encrypted_block)
+
+        return encrypted_blocks
+
+    def decrypt_large_message(self, encrypted_blocks):
+        decrypted_message = bytearray()
+
+        for block in encrypted_blocks:
+            decrypted_block_int = self.decrypt_block(block)
+            block_size = (decrypted_block_int.bit_length() + 7) // 8
+            decrypted_block = decrypted_block_int.to_bytes(block_size, byteorder='big')
+            decrypted_message.extend(decrypted_block)
+
+        return decrypted_message.decode('utf-8')
 
     def encrypt(self, message):
-        e, n = self.public_key
-        message_int = int.from_bytes(message.encode('utf-8'), byteorder='big')
-        encrypted_message = pow(message_int, e, n)
-        return encrypted_message
+        """Encrypts a large message using block encryption."""
+        return self.encrypt_large_message(message)
 
     def decrypt(self, encrypted_message):
-        d, n = self.private_key
-        decrypted_int = pow(encrypted_message, d, n)
-        # decrypt int might translate to 1111000 which is a byte but // would give us 0, since its 0,something, so we add 7 ro get it right, if we add 8 we'd have problems with numbers like 11110000
-        byte_length = (decrypted_int.bit_length() + 7) // 8
-        decrypted_bytes = decrypted_int.to_bytes(byte_length, byteorder='big')
-        return decrypted_bytes.decode('utf-8')
+        """Decrypts a large message using block decryption."""
+        return self.decrypt_large_message(encrypted_message)
 
 
-message_input = input('Enter message: ')
-
-public_k, private_k = MyRSA.rsa_keys_generator()
-
-rsa = MyRSA(public_k, private_k)
-encrypted = rsa.encrypt(message_input)
-print(encrypted)
-decrypted = rsa.decrypt(encrypted)
-print(decrypted)
+# message_input = input('Enter message: ')
+#
+# public_k, private_k = MyRSA.rsa_keys_generator()
+#
+# rsa = MyRSA(public_k, private_k)
+# encrypted = rsa.encrypt(message_input)
+# print(encrypted)
+# decrypted = rsa.decrypt(encrypted)
+# print(decrypted)

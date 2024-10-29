@@ -1,48 +1,55 @@
 import socket
 import threading
 
+from MyDiffieHellman.DiffieHellman import MyDeffieHellman
+from OneFileHybrid import MessageSignaturePackage
 
+
+# Server class to handle communication with a single client
 class ChatServer:
-    def __init__(self, host='127.0.0.1', port=5555):
-        self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server.bind((host, port))
-        self.server.listen()
-        print(f"[LISTENING] Server is listening on {host}:{port}")
+    def __init__(self, host='127.0.0.1', port=12345):
+        self.received_messages = []
+        self.received_messages_condition = threading.Condition()  # Create a condition variable
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket.bind((host, port))
+        self.server_socket.listen(1)
+        print("Server is running... Waiting for a client to connect.")
 
-    def handle_client(self, client_socket, addr):
-        print(f"[NEW CONNECTION] {addr} connected.")
-        thread = threading.Thread(target=self.receive_messages, args=(client_socket, addr))
-        thread.start()
+        # Accepting a client
+        self.client_socket, self.client_address = self.server_socket.accept()
+        print(f"Client connected: {self.client_address}")
 
-        # Allow the server to send messages
-        while True:
-            server_message = input("Server: ")
-            self.send_message(client_socket, f"Server: {server_message}")
+        # Start the server to handle client communication
+        threading.Thread(target=self.handle_client, daemon=True).start()
 
-    def receive_messages(self, client_socket, addr):
+    def send_message(self, message):
+        self.client_socket.send(message.encode('utf-8'))
+
+    # Handle communication with the connected client
+    def handle_client(self):
         while True:
             try:
-                # Receive message from client
-                message = client_socket.recv(1024).decode('utf-8')
+                # Receive message from the client
+                message = self.client_socket.recv(4096).decode('utf-8')
                 if message:
-                    print(f"[{addr}] {message}")
-                else:
-                    print(f"[DISCONNECT] {addr} disconnected.")
-                    break
-            except:
-                print(f"[ERROR] Connection with {addr} lost.")
+                    with self.received_messages_condition:  # Lock the condition variable
+                        self.received_messages.append(message)
+                        print("received messages: ")
+                        print(self.received_messages)
+                        self.received_messages_condition.notify()  # Notify waiting threads
+
+            except Exception as e:
+                print("Connection closed by the client:", e)
                 break
 
-    def send_message(self, client_socket, message):
-        client_socket.send(message.encode('utf-8'))
-
-    def start(self):
-        print("[STARTING] Server is starting...")
-        while True:
-            client_socket, addr = self.server.accept()
-            print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
-            self.handle_client(client_socket, addr)
+        self.client_socket.close()
 
 
-server = ChatServer()
-server.start()
+# Main execution
+Alice = ChatServer()
+alice_deffi = MyDeffieHellman()
+Alice.send_message(str(alice_deffi.p))
+Alice.send_message(str(alice_deffi.g))
+
+# Call the function to create the shared key
+MessageSignaturePackage.create_shared_key(Alice, alice_deffi)

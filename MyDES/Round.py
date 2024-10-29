@@ -1,5 +1,5 @@
 from MyDES.MatrixBin import MatrixBin
-from Permutations import Permutations
+from .Permutations import Permutations
 
 
 class Round:

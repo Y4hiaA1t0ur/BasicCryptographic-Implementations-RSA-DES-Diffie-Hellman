@@ -5,8 +5,11 @@ from MyDES.Round import Round
 
 
 class MyDES:
-    def __init__(self):
-        self.__r_keys = KeyManager.generate_round_keys(KeyManager.generate_main_key())
+    def __init__(self, key=None):
+        if key is None:
+            self.__r_keys = KeyManager.generate_round_keys(KeyManager.generate_main_key())
+        else:
+            self.__r_keys = KeyManager.generate_round_keys(key)
 
     @staticmethod
     def des(msg, rounds_keys):

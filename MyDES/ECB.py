@@ -3,8 +3,8 @@ from MyDES.MyDESMain import MyDES
 
 
 class MyECB:
-    def __init__(self):
-        self.__des = MyDES()
+    def __init__(self, key=None):
+        self.__des = MyDES(key)
 
     def ecb_encrypt(self, plaintext):
         message_int = int.from_bytes(plaintext.encode('utf-8'), byteorder='big')
@@ -19,10 +19,10 @@ class MyECB:
         decrypted_bytes = message_int.to_bytes(byte_length, byteorder='big')
         return decrypted_bytes.decode('utf-8')
 
-
-ECB = MyECB()
-msg = input('Enter message: ')
-encrypted_msg = ECB.ecb_encrypt(msg)
-print(encrypted_msg)
-decrypted_msg = ECB.ecb_decrypt(encrypted_msg)
-print(decrypted_msg)
+#
+# ECB = MyECB()
+# msg = input('Enter message: ')
+# encrypted_msg = ECB.ecb_encrypt(msg)
+# print(encrypted_msg)
+# decrypted_msg = ECB.ecb_decrypt(encrypted_msg)
+# print(decrypted_msg)
