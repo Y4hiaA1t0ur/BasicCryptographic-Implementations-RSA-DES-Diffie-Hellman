@@ -16,7 +16,6 @@ class MessageSignaturePackage:
         sha256_hash.update(str(self.message).encode('utf-8'))
         hashed_message = sha256_hash.hexdigest()
         encrypted_hash = self.rsa.encrypt(hashed_message)
-        print("encrypted hash: " + str(encrypted_hash))
         return self.message, encrypted_hash, self.public_k
 
     @staticmethod
@@ -58,7 +57,6 @@ class MessageSignaturePackage:
         current.send_message("hash" + str(encrypted_hash))
         time.sleep(2)
         current.send_message("k" + str(public_k))
-        print("package sent")
         with current.received_messages_condition:  # Lock the condition variable
             while len(current.received_messages) < 3:  # Keep checking until it's not empty
                 current.received_messages_condition.wait()
@@ -74,12 +72,12 @@ class MessageSignaturePackage:
                 other_public_k = message.replace("k", "")
 
         shared_secret_key = current_deffi.get_secret_key(int(other_dh_public))
-        print("Shared key: " + str(shared_secret_key))
+        # print("Shared key: " + str(shared_secret_key))
         MessageSignaturePackage.check_signature(int(other_dh_public), int(other_encrypted_hash),
                                                 MessageSignaturePackage._convert_key_string_to_tuple(other_public_k))
 
         des_key = f"{shared_secret_key % (1 << 64):064b}"
-        print("the des key: " + str(des_key))
+        # print("the des key: " + str(des_key))
         return des_key
 
     @staticmethod
@@ -93,6 +91,16 @@ class MessageSignaturePackage:
                 raise ValueError("Key string is not a valid tuple format")
         except (ValueError, SyntaxError):
             raise ValueError("Invalid key format; expected a tuple in string form.")
+
+    @staticmethod
+    def message_sender_loop(sender):
+        while True:
+            msg = input("Enter message: ")
+            enc_msg = sender.ecb.ecb_encrypt(msg)  # Assuming `Alice.ecb.ecb_encrypt` is the encryption method
+            for m in enc_msg:
+                sender.send_message(str(m))
+                time.sleep(0.5)
+            sender.send_message("FIN")
 
 # alice = MyDeffieHellman()
 # bob = MyDeffieHellman(alice.p, alice.g)

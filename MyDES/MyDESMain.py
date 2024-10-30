@@ -9,6 +9,7 @@ class MyDES:
         if key is None:
             self.__r_keys = KeyManager.generate_round_keys(KeyManager.generate_main_key())
         else:
+            print("DES key passed")
             self.__r_keys = KeyManager.generate_round_keys(key)
 
     @staticmethod

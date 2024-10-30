@@ -19,10 +19,11 @@ class MyECB:
         decrypted_bytes = message_int.to_bytes(byte_length, byteorder='big')
         return decrypted_bytes.decode('utf-8')
 
-#
+
+# #
 # ECB = MyECB()
-# msg = input('Enter message: ')
+# msg = "Hi world!"
 # encrypted_msg = ECB.ecb_encrypt(msg)
-# print(encrypted_msg)
-# decrypted_msg = ECB.ecb_decrypt(encrypted_msg)
+# print(type(encrypted_msg[0]))
+# decrypted_msg = ECB.ecb_decrypt([10536776382724176978])
 # print(decrypted_msg)

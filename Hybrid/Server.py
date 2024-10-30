@@ -1,6 +1,7 @@
 import socket
 import threading
 
+from MyDES.ECB import MyECB
 from MyDiffieHellman.DiffieHellman import MyDeffieHellman
 from OneFileHybrid import MessageSignaturePackage
 
@@ -8,6 +9,9 @@ from OneFileHybrid import MessageSignaturePackage
 # Server class to handle communication with a single client
 class ChatServer:
     def __init__(self, host='127.0.0.1', port=12345):
+        self.encrypted_array = []
+        self.des_started = False
+        self.ecb = None
         self.received_messages = []
         self.received_messages_condition = threading.Condition()  # Create a condition variable
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,12 +36,19 @@ class ChatServer:
                 # Receive message from the client
                 message = self.client_socket.recv(4096).decode('utf-8')
                 if message:
-                    with self.received_messages_condition:  # Lock the condition variable
-                        self.received_messages.append(message)
-                        print("received messages: ")
-                        print(self.received_messages)
-                        self.received_messages_condition.notify()  # Notify waiting threads
-
+                    with self.received_messages_condition:
+                        if not self.des_started:
+                            # Normal message handling before DES starts
+                            self.received_messages.append(message)
+                            self.received_messages_condition.notify()
+                        else:
+                            if message == "FIN":
+                                self.ecb.ecb_decrypt(self.encrypted_array)
+                                print("Bob: " + self.ecb.ecb_decrypt(self.encrypted_array))
+                                self.encrypted_array = []
+                            else:
+                                self.encrypted_array.append(int(message))
+                                print("encrypted message arrived")
             except Exception as e:
                 print("Connection closed by the client:", e)
                 break
@@ -45,11 +56,17 @@ class ChatServer:
         self.client_socket.close()
 
 
-# Main execution
 Alice = ChatServer()
 alice_deffi = MyDeffieHellman()
 Alice.send_message(str(alice_deffi.p))
 Alice.send_message(str(alice_deffi.g))
 
-# Call the function to create the shared key
-MessageSignaturePackage.create_shared_key(Alice, alice_deffi)
+des_key = MessageSignaturePackage.create_shared_key(Alice, alice_deffi)
+Alice.des_started = True
+print("des key:")
+print(des_key)
+Alice.ecb = MyECB(des_key)
+
+# Now to create a thread for it:
+message_thread = threading.Thread(target=MessageSignaturePackage.message_sender_loop, args=(Alice,))
+message_thread.start()
