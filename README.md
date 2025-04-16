@@ -9,9 +9,6 @@ This repository contains basic cryptographic implementations of **RSA**, **DES**
 - [Overview](#overview)
 - [Features](#features)
 - [Security Warning](#security-warning)
-- [Usage](#usage)
-- [Requirements](#requirements)
-- [License](#license)
 
 ## Overview
 
